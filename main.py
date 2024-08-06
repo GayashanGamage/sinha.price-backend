@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.responses import JSONResponse
 from bs4 import BeautifulSoup
 import requests
@@ -8,7 +8,8 @@ import os
 from datetime import datetime
 from Schemas import productDetails
 from fastapi.middleware.cors import CORSMiddleware
-from user import auth
+from user import auth, authVerification
+from typing import Dict
 
 # mondoDB database config 
 load_dotenv()
@@ -87,6 +88,7 @@ async def storeProduct(product_details : productDetails):
         items.update_one({'link' : product_details.link[30:]}, { '$inc' : {'track_count' : 1}})
     return JSONResponse(status_code=201, content={'message' : 'successful'})
 
-@app.get('/test')
-def test():
-    return JSONResponse(status_code=200, content={'message' : 'success'})
+
+@app.delete('/remove-product', summary='this is for remove single product from track list')
+async def removeProduct():
+    pass
