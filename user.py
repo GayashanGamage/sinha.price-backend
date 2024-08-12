@@ -5,8 +5,9 @@ from pymongo import MongoClient
 import os
 from dotenv import load_dotenv
 from fastapi.responses import JSONResponse
-from jose import jwt
+from jose import jwt, ExpiredSignatureError
 from typing import Annotated
+from passlib.hash import pbkdf2_sha256
 
 bare = HTTPBearer()
 
@@ -20,27 +21,44 @@ mongo = MongoClient(os.getenv('mongo'))
 cluster = mongo['price_platform']
 users = cluster['user']
 
+
 # ------------------------------------------------------
 # side support functions
+
+# get hashed password
+def hashedPassword(password):
+    return pbkdf2_sha256.hash(password)
+
+# verified hashed password
+def verifyPassword(password, hashed):
+    return pbkdf2_sha256.verify(password, hashed)
+
 def encriptJWT(data):
     return jwt.encode(data, os.getenv('jwt'), algorithm='HS256')
 
 def decriptJWT(Token):
-    return jwt.decode(Token, os.getenv('jwt'), algorithms='HS256')
+    try:
+        return jwt.decode(Token, os.getenv('jwt'), algorithms='HS256')
+    except ExpiredSignatureError as e:
+        return e
+
 
 def authVerification(details : Annotated[HTTPAuthorizationCredentials, Depends(security)]):
     return decriptJWT(details.credentials)
 
 
 # ------------------------------------------------------
-# create new admin use
+# create new user
 @auth.post('/create-user',tags=['user-auth'])
 async def createUser(user : User):
     # find duplicate username or email
     userInfo = users.find_one({'email' : user.email})
     # if email not duplicate
     if userInfo == None:
-        users.insert_one({'email' : user.email, 'first_name' : user.first_name, 'password' : user.password, 'created' : user.created})
+        # get hashed password
+        hashedPass = hashedPassword(user.password)
+        # insert data into database
+        users.insert_one({'email' : user.email, 'first_name' : user.first_name, 'password' : hashedPass, 'created' : user.created, 'product' : []})
         data = {'email' : user.email, 'password' : user.password}
         token = encriptJWT(data)
         return JSONResponse(status_code=200, content={'message' : 'account created', 'token' : token})
@@ -56,8 +74,10 @@ async def login(credentials: Credentials):
     userDetails = users.find_one({'email': credentials.email})
     # if user found
     if userDetails != None:
+        # unhashed password
+        unhashedPass = verifyPassword(credentials.password, userDetails['password'])
         # get verified password 
-        if credentials.password == userDetails['password']:
+        if unhashedPass == True:
             data = {'email' : userDetails['email'], 'password' : userDetails['password']}
             token = encriptJWT(data)
             return JSONResponse(status_code=200, content={'name' : userDetails['first_name'], 'token' : token})

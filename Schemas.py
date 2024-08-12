@@ -4,9 +4,10 @@ from datetime import datetime
 class productDetails(BaseModel):
     link : str
     price : int
+    track_price : int
     title : str
-    availability : bool
-    viewable : bool
+    code : str  
+    availability : str
 
 class Credentials(BaseModel):
     email : EmailStr
@@ -15,3 +16,5 @@ class Credentials(BaseModel):
 class User(Credentials):
     first_name : str
     created : datetime =Field(default=datetime.now())
+
+# output details ----------------------------

@@ -15,7 +15,9 @@ from typing import Dict
 load_dotenv()
 mongo = MongoClient(os.getenv('mongo'))
 cluster = mongo['price_platform']
-items = cluster['items']
+product = cluster['product']
+users = cluster['user']
+tracks = cluster['tracks']
 
 app = FastAPI()
 app.include_router(auth)
@@ -77,18 +79,29 @@ async def getProduct(link : str):
 
 
 @app.post('/store', summary="store product details in database")
-async def storeProduct(product_details : productDetails):
+async def storeProduct(product_details : productDetails, data = Depends(authVerification)):
     """
     this is for store / update 'track by' filed for product
     """
-    getItem = items.find_one({'link' : product_details.link[30:]})
-    if getItem == None:
-        items.insert_one({'link' : product_details.link[30:], 'created' : datetime.now(), 'track_count' : 1, 'current_price' : product_details.price, 'title' : product_details.title, 'availability' : product_details.availability, 'viewable' : product_details.viewable})
+    # find user details 
+    user_details = users.find_one({'email' : data.email})
+    # find the product
+    pdct_detail = product.find_one({'link' : product_details.link})
+    # if product is not there add it to database
+    if pdct_detail == None:
+        insert_product = product.insert_one(product_details.dict())
+    # if product is available
     else:
-        items.update_one({'link' : product_details.link[30:]}, { '$inc' : {'track_count' : 1}})
-    return JSONResponse(status_code=201, content={'message' : 'successful'})
+        pdct_detail['_id'] = str(pdct_detail['_id'])
+         
 
+
+
+    # return JSONResponse(status_code=200, content=pdct_detail)
+    
 
 @app.delete('/remove-product', summary='this is for remove single product from track list')
 async def removeProduct():
     pass
+
+
