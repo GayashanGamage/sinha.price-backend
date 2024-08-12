@@ -3,7 +3,7 @@ from datetime import datetime
 
 class productDetails(BaseModel):
     link : str
-    price : int
+    price : str
     track_price : int
     title : str
     code : str  

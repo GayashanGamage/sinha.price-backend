@@ -58,8 +58,9 @@ async def createUser(user : User):
         # get hashed password
         hashedPass = hashedPassword(user.password)
         # insert data into database
-        users.insert_one({'email' : user.email, 'first_name' : user.first_name, 'password' : hashedPass, 'created' : user.created, 'product' : []})
-        data = {'email' : user.email, 'password' : user.password}
+        newUserInfo = users.insert_one({'email' : user.email, 'first_name' : user.first_name, 'password' : hashedPass, 'created' : user.created})
+        # userInfo.inserted_id = str(userInfo.inserted_id)
+        data = {'email' : user.email, 'password' : user.password, 'id' : str(newUserInfo.inserted_id)}
         token = encriptJWT(data)
         return JSONResponse(status_code=200, content={'message' : 'account created', 'token' : token})
     # if username or mail duplicate
@@ -71,6 +72,7 @@ async def createUser(user : User):
 @auth.post('/login', tags=['user-auth'])
 async def login(credentials: Credentials):
     # find user by usernam in database
+    
     userDetails = users.find_one({'email': credentials.email})
     # if user found
     if userDetails != None:
@@ -78,7 +80,7 @@ async def login(credentials: Credentials):
         unhashedPass = verifyPassword(credentials.password, userDetails['password'])
         # get verified password 
         if unhashedPass == True:
-            data = {'email' : userDetails['email'], 'password' : userDetails['password']}
+            data = {'email' : userDetails['email'], 'password' : userDetails['password'], 'id' : str(userDetails['_id'])}
             token = encriptJWT(data)
             return JSONResponse(status_code=200, content={'name' : userDetails['first_name'], 'token' : token})
         else:

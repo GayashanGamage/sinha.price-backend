@@ -18,6 +18,7 @@ cluster = mongo['price_platform']
 product = cluster['product']
 users = cluster['user']
 tracks = cluster['tracks']
+email = cluster['email']
 
 app = FastAPI()
 app.include_router(auth)
@@ -83,16 +84,35 @@ async def storeProduct(product_details : productDetails, data = Depends(authVeri
     """
     this is for store / update 'track by' filed for product
     """
-    # find user details 
-    user_details = users.find_one({'email' : data.email})
-    # find the product
-    pdct_detail = product.find_one({'link' : product_details.link})
-    # if product is not there add it to database
-    if pdct_detail == None:
-        insert_product = product.insert_one(product_details.dict())
-    # if product is available
+    # get user details form User table
+    userInfo = users.find_one({'email' : data['email']})
+    # print(userInfo)
+    # check validity of JWT token
+    if data == False or userInfo == None:
+        return JSONResponse(status_code=401, content={'error' : 'JWT token is not valid'})
     else:
-        pdct_detail['_id'] = str(pdct_detail['_id'])
+        # find user details from product table
+        productInfo = product.find_one({'link' : product_details.link})
+        # if product not available add to database
+        if productInfo == None:
+            productInfo = product.insert_one(product_details.dict())
+            # check tracks regard to user
+            tracksInfor = tracks.find_one({'user_id' : data['id']})
+            if tracksInfor == None:
+                # create new tracks document in tracks table
+                tracks.insert_one({'user_id' : data['id'], 'product' : [{'prduct_id' : productInfo.inserted_id, 'price' : product_details.track_price, 'send' : False, 'email_id' : None}]})
+            else:
+                tracks.update_one({'user_id' : data['id']}, {'$push' : { 'product' : {'procut_id' : productInfo.inserted_id, 'price' : product_details.track_price, 'send' : False, 'email_id' : None}}})
+        else:
+            # check tracks regard to user
+            tracksInfor = tracks.find_one({'user_id' : data['id']})
+            if tracksInfor == None:
+                # create new tracks document in tracks table
+                tracks.insert_one({'user_id' : data['id'], 'product' : [{'prduct_id' : productInfo['_id'], 'price' : product_details.track_price, 'send' : False, 'email_id' : None}]})
+            else:
+                tracks.update_one({'user_id' : data['id']}, {'$push' : { 'product' : {'procut_id' : productInfo['_id'], 'price' : product_details.track_price, 'send' : False, 'email_id' : None}}})
+        return JSONResponse(status_code=200, content={'messsage' : 'successfull'})
+
          
 
 
