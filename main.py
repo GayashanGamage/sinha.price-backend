@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from user import auth, authVerification
 from typing import Dict
 from pprint import pprint
+from bson import ObjectId
 
 # mondoDB database config 
 load_dotenv()
@@ -115,9 +116,13 @@ async def storeProduct(product_details : productDetails, data = Depends(authVeri
         return JSONResponse(status_code=200, content={'messsage' : 'successfull'})
     
 
-@app.delete('/remove-product', summary='this is for remove single product from track list')
-async def removeProduct():
-    pass
+@app.delete('/remove-product/{item_id}', summary='this is for remove single product from track list')
+async def removeProduct(item_id:str,  data = Depends(authVerification)):
+    trackProduct = tracks.update_one({'user_id' : data['id']}, {'$pull' : {'product' :{ 'product_id': ObjectId(item_id)}}})
+    if trackProduct.modified_count == 0:
+        return JSONResponse(status_code=400, content={'error' : 'content not available'})
+    else:
+        return JSONResponse(status_code=200, content={'message' : 'successful'})
 
 @app.get('/get-products', summary='get all product tracks by user')
 async def getProducts(data = Depends(authVerification)):
