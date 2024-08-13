@@ -10,6 +10,7 @@ from Schemas import productDetails
 from fastapi.middleware.cors import CORSMiddleware
 from user import auth, authVerification
 from typing import Dict
+from pprint import pprint
 
 # mondoDB database config 
 load_dotenv()
@@ -100,28 +101,41 @@ async def storeProduct(product_details : productDetails, data = Depends(authVeri
             tracksInfor = tracks.find_one({'user_id' : data['id']})
             if tracksInfor == None:
                 # create new tracks document in tracks table
-                tracks.insert_one({'user_id' : data['id'], 'product' : [{'prduct_id' : productInfo.inserted_id, 'price' : product_details.track_price, 'send' : False, 'email_id' : None}]})
+                tracks.insert_one({'user_id' : data['id'], 'product' : [{'product_id' : productInfo.inserted_id, 'price' : product_details.track_price, 'send' : False, 'email_id' : None}]})
             else:
-                tracks.update_one({'user_id' : data['id']}, {'$push' : { 'product' : {'procut_id' : productInfo.inserted_id, 'price' : product_details.track_price, 'send' : False, 'email_id' : None}}})
+                tracks.update_one({'user_id' : data['id']}, {'$push' : { 'product' : {'product_id' : productInfo.inserted_id, 'price' : product_details.track_price, 'send' : False, 'email_id' : None}}})
         else:
             # check tracks regard to user
             tracksInfor = tracks.find_one({'user_id' : data['id']})
             if tracksInfor == None:
                 # create new tracks document in tracks table
-                tracks.insert_one({'user_id' : data['id'], 'product' : [{'prduct_id' : productInfo['_id'], 'price' : product_details.track_price, 'send' : False, 'email_id' : None}]})
+                tracks.insert_one({'user_id' : data['id'], 'product' : [{'product_id' : productInfo['_id'], 'price' : product_details.track_price, 'send' : False, 'email_id' : None}]})
             else:
-                tracks.update_one({'user_id' : data['id']}, {'$push' : { 'product' : {'procut_id' : productInfo['_id'], 'price' : product_details.track_price, 'send' : False, 'email_id' : None}}})
+                tracks.update_one({'user_id' : data['id']}, {'$push' : { 'product' : {'product_id' : productInfo['_id'], 'price' : product_details.track_price, 'send' : False, 'email_id' : None}}})
         return JSONResponse(status_code=200, content={'messsage' : 'successfull'})
-
-         
-
-
-
-    # return JSONResponse(status_code=200, content=pdct_detail)
     
 
 @app.delete('/remove-product', summary='this is for remove single product from track list')
 async def removeProduct():
     pass
 
-
+@app.get('/get-products', summary='get all product tracks by user')
+async def getProducts(data = Depends(authVerification)):
+    # token validation 
+    if data == False:
+        return JSONResponse(status_code=401, content={'error' : 'unauthorized request'})
+    else:
+        # aggregate pipelines 
+        pipline1 = {'$match' : {'user_id' : data['id']}}
+        pipline2 = {'$unwind' : '$product'}
+        pipline3 = {'$lookup' : {'from' : 'product', 'localField' : 'product.product_id', 'foreignField' : '_id', 'as' : 'products'}}
+        pipline4 = {'$unset' : ['user_id', '_id', 'product.email_id', 'products._id']}
+        # combine tracks and product table
+        tracksProducts = tracks.aggregate([pipline1, pipline2, pipline3, pipline4])
+        # manual type conversion 
+        trackProductsList = []
+        for item in tracksProducts:
+            item['product']['product_id'] = str(item['product']['product_id'])
+            trackProductsList.append(item)
+        # output
+        return JSONResponse(content=trackProductsList)
