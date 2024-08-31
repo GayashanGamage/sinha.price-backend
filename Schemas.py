@@ -8,6 +8,7 @@ class productDetails(BaseModel):
     title : str
     code : str  
     availability : str
+    image : str
 
 class Credentials(BaseModel):
     email : EmailStr
@@ -18,3 +19,7 @@ class User(Credentials):
     created : datetime =Field(default=datetime.now())
 
 # output details ----------------------------
+
+class trackData(BaseModel):
+    price : int
+    product_id : str

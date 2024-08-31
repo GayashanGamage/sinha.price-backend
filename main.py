@@ -6,12 +6,14 @@ from pymongo import MongoClient
 from dotenv import load_dotenv
 import os
 from datetime import datetime
-from Schemas import productDetails
+from Schemas import productDetails, trackData
 from fastapi.middleware.cors import CORSMiddleware
 from user import auth, authVerification
 from typing import Dict
 from pprint import pprint
 from bson import ObjectId
+from Automation import ScrapProduct
+import schedule
 
 # mondoDB database config 
 load_dotenv()
@@ -144,3 +146,13 @@ async def getProducts(data = Depends(authVerification)):
             trackProductsList.append(item)
         # output
         return JSONResponse(content=trackProductsList)
+
+@app.put('/track-update', summary='update track product price')
+async def trackUpdate(track_id : str, price : int, data = Depends(authVerification)):
+    tracksInformation = tracks.update_one({'user_id' : data['id'], 'product.product_id' : ObjectId(track_id)}, {'$set' : {'product.$.price' : price}})
+    if tracksInformation.modified_count > 0:
+        return JSONResponse(status_code=200, content='successful')
+    else:
+        return JSONResponse(status_code=404, content='update cannot be done')
+
+
