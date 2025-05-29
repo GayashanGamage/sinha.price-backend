@@ -12,7 +12,6 @@ from user import auth, authVerification
 from typing import Dict
 from pprint import pprint
 from bson import ObjectId
-from Automation import ScrapProduct
 import schedule
 
 # mondoDB database config 

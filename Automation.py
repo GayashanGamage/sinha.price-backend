@@ -121,7 +121,34 @@ def ScrapProduct():
 
 # get all product ( except untrack and alredy notified ) and check price match
 def PriceMatch():
-    pass
+    # get all track products 
+    allTrackes = tracks.find({})
+    
+    # analytics variables 
+    userCount = len(allTrackes)
+    mailSentCount = 0
+    priceMatchCount = 0
+    priceMatchProducts = []
+
+    # type conversion 
+    for item in allTrackes:
+        item['_id'] = str(item['_id'])
+        # for i in item:
+        #     i['product_id'] = str(i['product_id'])
+        
+        # get current product price if mail-send is false
+        if(i['send'] == False):
+            productDetails = product.find_one({'_id' : i['product_id']}, {'last update' : 0, '_id' : 0})
+            # check whether price is eaqul or not
+            if(productDetails['price'] == i['price']):
+                priceMatchCount += 1
+                priceMatchProducts.append(productDetails)
+
+        if(len(priceMatchProducts) >= 1):
+            mailSentCount += 1
+            PriceUpdateMail()
+
+    UserMailSummery(userCount, priceMatchCount, mailSentCount)
 
 
 # send mail for users 
@@ -135,10 +162,11 @@ def UserMailSummery():
 
 
 # schedule function 
-schedule.every().day.at("15:50").do(ScrapProduct)
+# schedule.every().day.at("15:50").do(ScrapProduct)
 # schedule.every().day.at("11:00").do(PriceMatch)
 
 # run schedule functions 
-while True:
-    schedule.run_pending()
+# while True:
+#     schedule.run_pending()
 
+PriceMatch()
