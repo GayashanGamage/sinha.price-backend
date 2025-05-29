@@ -29,9 +29,9 @@ app.include_router(auth)
 
 # middleware config
 origins = [
-    "https://sigiriprice.gamage.me",
-    "http://sigiriprice.gamage.me",
-    "sigiriprice.gamage.me",
+    "https://sigiriprice.gamage.dev",
+    "http://sigiriprice.gamage.dev",
+    "sigiriprice.gamage.dev",
     "http://localhost:5173",
     "http://localhost"
 ]
