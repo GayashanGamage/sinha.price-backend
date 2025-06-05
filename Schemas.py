@@ -1,25 +1,25 @@
-from pydantic import BaseModel, EmailStr, Field
-from datetime import datetime
+# from pydantic import BaseModel, EmailStr, Field
+# from datetime import datetime
 
-class productDetails(BaseModel):
-    link : str
-    price : str
-    track_price : int
-    title : str
-    code : str  
-    availability : str
-    image : str
+# class productDetails(BaseModel):
+#     link : str
+#     price : str
+#     track_price : int
+#     title : str
+#     code : str  
+#     availability : str
+#     image : str
 
-class Credentials(BaseModel):
-    email : EmailStr
-    password : str
+# class Credentials(BaseModel):
+#     email : EmailStr
+#     password : str
 
-class User(Credentials):
-    first_name : str
-    created : datetime =Field(default=datetime.now())
+# class User(Credentials):
+#     first_name : str
+#     created : datetime =Field(default=datetime.now())
 
-# output details ----------------------------
+# # output details ----------------------------
 
-class trackData(BaseModel):
-    price : int
-    product_id : str
+# class trackData(BaseModel):
+#     price : int
+#     product_id : str
