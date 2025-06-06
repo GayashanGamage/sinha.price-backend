@@ -28,3 +28,17 @@ class Redis:
                     password= os.getenv('redis_password'),
                     )
         self.verification = 'verification'
+    #     self.createHash()
+
+    # def createHash(self):
+    #     hashSet = self.cache.hset(f"{self.verification}:name", mapping={
+    #         'name' : 'gayashan',
+    #         'school' : 'NRC',
+    #         'university' : 'ousl',
+    #     })
+    #     if hashSet == True:
+    #         print('transaction is success')
+    #         return 
+    #     elif hashSet == False:
+    #         print('transaction is not success')
+    #         pass

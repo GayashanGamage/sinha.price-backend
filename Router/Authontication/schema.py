@@ -16,3 +16,7 @@ class UserOnlyCredintials(BaseModel):
 class emailVerification(BaseModel):
     email : EmailStr
     time : Optional[datetime] = Field(default_factory=datetime.now)
+
+class EmailVerification(BaseModel):
+    email : EmailStr
+    code : int
