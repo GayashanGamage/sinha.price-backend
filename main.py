@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # from bson import ObjectId
 # import schedule
 from Router.Authontication import route
+from Router.Products import route as pRoute
 
 # mondoDB database config 
 # load_dotenv()
@@ -26,6 +27,7 @@ from Router.Authontication import route
 
 app = FastAPI()
 app.include_router(route.route)
+app.include_router(pRoute.productRoute)
 # app.include_router(auth)
 
 # middleware config
