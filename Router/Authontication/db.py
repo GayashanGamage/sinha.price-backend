@@ -1,4 +1,5 @@
 from Dependencies.database import DB, Redis
+from pymongo import ReturnDocument
 
 database = DB()
 cache = Redis()
@@ -46,10 +47,6 @@ def storeScreateCode(email, code):
     set the secrete code in cache memory
     return - True : store successfull | False : not successfull
     """
-    # cache.cache.hset(f"{cache.verification}:{email}", mapping={
-    #     'name' : 'gayashan',
-    #     'school' : 'NRC',
-    # })
     setData = cache.cache.hset(f'{cache.verification}:{email}', mapping={'code' : f'{code}', 'verified' : f'{False}'})
     print(setData)
     if setData == 2:
@@ -94,34 +91,43 @@ def emailValidation(credencials):
     
 def checkEmailVerification(email):
     """
-    check 'verified' files of the 'verification' on redis.
-    return - True : alredy verified | False : not verified | 1001 : cannot meet the redis requirements
+    check the email is available in 'verification' on redis and verified or not ?
+    output : True : verified | False : not verified | 1000 : email not available on 'verification' - redis
     """
-    checkVerification = cache.cache.hget(f'{cache.verification}:{email}', 'verified')
-    if bool(checkVerification) == True:
-        # set expire of 'email' on 'verification' section on redis
-        remveCode = cache.cache.hdel(f'{cache.verification}:{email}', 'code', 'verified')
-        print(remveCode)
-        if remveCode == 2:
-            return True
-        else:
-            return 1001
-    else:
+    status = cache.cache.hget(f'{cache.verification}:{email}', 'verified')
+    if status == None:
+        print(f'{email} is not available on redis "verification" section')
+        return 1000
+    elif bool(status) == True:
+        print(f'{email} is verified')
+        return True
+    elif bool(status) == False:
+        print(f'{email} is not verified')
         return False
-
-def updatePassword(email, newPassword):
+    
+def updatePassword(credencials):
     """
-    update current password with new password
-    return : True : successful | False : unsuccessfull | 1001 : cannot update 'PasswordReset' table
+    perpose : check the email is available on database and then update the password
+    output : True : password update successufully | False : email not found | 1000 : document found, but update not happend
     """
-    changePassword = database.users.update_one({'email' : email}, {'password' : newPassword})
-    if changePassword.acknowledged == True:
-        # update 'PasswordRest' table
-        print(email, newPassword)
-        updatePasswordRestTable = database.passwordreset.update_one({'email' : email}, {'$set':{'password' : newPassword}})
-        if updatePasswordRestTable.acknowledged == True:
-            return True
-        else:
-            return 1001
+    changePassword = database.users.find_one_and_update({'email' : credencials.email}, {'$set' : {'password' : credencials.password}}, return_document=ReturnDocument.AFTER)
+    if changePassword == None:
+        print(f'{credencials.email} not found on "User" collection')
+        return False
+    elif changePassword['password'] == credencials.password:
+        print(f'password updated successfully on {credencials.email}')
+        return True
+    elif changePassword['password'] != credencials.password:
+        print(f'{credencials.email} found on "User" collection, but not updated properly')
+        return 1000
+    
+def removeVerificationOnRedis(email):
+    """
+    perpose : remove password reset related data on redis 'verification' section
+    return - True : successfull | false : not succesfull
+    """
+    removeData = cache.cache.hdel(f'{cache.verification}:{email}', 'code', 'verified')
+    if removeData == 2:
+        return True
     else:
         return False

@@ -73,22 +73,33 @@ async def emailVerification(credentials : schema.EmailVerification):
     elif Evaluation == 1002:
         return JSONResponse(status_code=400, content={'message' : 'Invalied email'})
 
-@route.patch('/passwordReset', tags=['auth'])
-async def passwordReset(credentialChange : schema.UserOnlyCredintials):
-    # check verification
-    checkEmailVerification = db.checkEmailVerification(credentialChange.email)
-    if checkEmailVerification == True:
-        # hash password
-        hashPassword = passwordHash.hashedPassword(credentialChange.email)
-        # update password
-        updatePassword = db.updatePassword(credentialChange.email, hashPassword)
-        if updatePassword == True:
-            return JSONResponse(status_code=200, content={'message' : 'chagen password successfuly'})
-        elif updatePassword == False:
+
+@route.patch('/passwordChange', tags=['auth'])
+async def passwrodChannge(credencials : schema.UserOnlyCredintials):
+    # check email verification status
+    emailVerificationStatus = db.checkEmailVerification(credencials.email)
+    # if verified
+    if emailVerificationStatus==True:
+        # update password on db
+        channgePassword = db.updatePassword(credencials)
+        # if password update successfull
+        if channgePassword == True:
+            # remove data on 'verificaition' - redis
+            removeData = db.removeVerificationOnRedis(credencials.email)
+            if removeData == True:
+                # send successfull message
+                return JSONResponse(status_code=200, content={'message' : 'password change successfully'})
+            else:
+                return JSONResponse(status_code=500, content={'messege' : "something go wrong on cache"})
+        # else
+        elif channgePassword == False:
             return JSONResponse(status_code=400, content={'message' : 'invalied email'})
-        else:
-            return JSONResponse(status_code=500, content={'messege' : 'something go wrong. try again latter'})
-    elif checkEmailVerification == 1001:
-        return JSONResponse(status_code=500, content={'message' : 'system error. try again latter'})
-    else:
-        return JSONResponse(status_code=400, content={'message' : 'unverified Email'})
+            # show error
+        elif channgePassword == 1000:
+            return JSONResponse(status_code=500, content={'message' : 'something go wrong. try latter'})
+    # else
+    elif emailVerificationStatus == False:
+        return JSONResponse(status_code=400, content={'message' : 'email is not varified'})
+        # show errro
+    elif emailVerificationStatus == 1000:
+        return JSONResponse(status_code=400, content={'message' : 'invalied email addresss'})
