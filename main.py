@@ -26,15 +26,12 @@ from Router.Products import route as pRoute
 # email = cluster['email']
 
 app = FastAPI()
-app.include_router(route.route)
-app.include_router(pRoute.productRoute)
-# app.include_router(auth)
 
 # middleware config
 origins = [
     "https://sigiriprice.gamage.dev",
     "http://sigiriprice.gamage.dev",
-    "sigiriprice.gamage.dev",
+    # "sigiriprice.gamage.dev",
     "http://localhost:5173",
     "http://localhost"
 ]
@@ -46,6 +43,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+app.include_router(route.route)
+app.include_router(pRoute.productRoute)
+# app.include_router(auth)
 
 
 # @app.get('/')
