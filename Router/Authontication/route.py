@@ -46,7 +46,6 @@ async def sendCode(email : schema.emailVerification = Query()):
     if userData != False:
         randomNum = randint(1000, 9999)
         store = db.storeScreateCode(email.email, randomNum)
-        print(userData)
         if store == True:
             emailId = emailService.passwordReset(userData['firstName'], userData['email'], randomNum)
             if emailId.message_id != None:
