@@ -39,26 +39,28 @@ async def userLogin(user : schema.UserOnlyCredintials):
             return JSONResponse(status_code=404, content={'message' : 'invalied credentials'})
             
 
-@route.get('/sendCode', tags=['auth'])
-async def sendCode(email : schema.emailVerification = Query()):
-    userData = db.checkEmail(email.email)
-    # print(userData)
-    if userData != False:
-        randomNum = randint(1000, 9999)
-        store = db.storeScreateCode(email.email, randomNum)
-        if store == True:
-            emailId = emailService.passwordReset(userData['firstName'], userData['email'], randomNum)
-            if emailId.message_id != None:
-                storeMailData = db.storeMailDate(email)
-                if storeMailData == True:
-                    return JSONResponse(status_code=200, content={'message' : 'email send succesfull'})
-                else:
-                    return JSONResponse(status_code=500, content={'error' : 'something go wrong. try again latter'})
-            else:
-                return JSONResponse(status_code=500, content={'error' : 'something go wrong. try again latter'})
-        return JSONResponse(status_code=500, content={'error' : 'something go wrong. try again latter'})    
+@route.get('/', tags=['auth'])
+async def sendVerificationCode(email : schema.emailVerification = Query()):
+    # check the email is avalilable
+    emailAvailability = db.checkEmail(email.email)
+    if emailAvailability != False:
+        db.clearCacheVerificationData(email.email)
+        secreateKey = randint(1000, 9999)
+        # this is for mongodb
+        passwordResetRecodeDB = db.addPasswordResetRecodeDB(email) 
+        # this is for redis
+        passwordResetRecodeRedis = db.addPasswordResetRecodeCache(email.email, secreateKey)
+        if passwordResetRecodeDB == True and passwordResetRecodeRedis == True:
+            sendEmail = emailService.passwordReset(emailAvailability['firstName'], emailAvailability['email'], secreateKey)
+            if sendEmail.message_id != None:
+                return JSONResponse(status_code=200, content={'message' : 'send secreatecode successfully'})
+            elif sendEmail.message_id == None:
+                return JSONResponse(status_code=500, content={'message' : 'server error. try again'})
+        else:
+            return JSONResponse(status_code=500, content={'message' : 'sever error. try again'})
     else:
-        return JSONResponse(status_code=404, content={'message' : 'invalied email'})
+        return JSONResponse(status_code=400, content={'message' : 'invalied email address'})
+        
 
 @route.post('/emailVerification', tags=['auth'])
 async def emailVerification(credentials : schema.EmailVerification):

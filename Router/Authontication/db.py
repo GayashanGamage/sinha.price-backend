@@ -42,32 +42,37 @@ def checkEmail(email):
         print(f'{email} is exisit as a user.')
         return userDetails
     
-def storeScreateCode(email, code):
+def clearCacheVerificationData(email):
     """
-    set the secrete code in cache memory
-    return - True : store successfull | False : not successfull
+    perpose : remove unused password change verification codes
+    response : True : old data record available | False : old data records not available
     """
-    setData = cache.cache.hset(f'{cache.verification}:{email}', mapping={'code' : f'{code}', 'verified' : f'{False}'})
-    print(setData)
-    if setData == 2:
-        print(f"cache secreate code related to {email} email address")
+    data = cache.cache.delete(f'{cache.verification}:{email}')
+    if data == 0:
+        return False
+    elif data == 1:
+        return True
+
+def addPasswordResetRecodeDB(email):
+    """
+    perpose : add password reset recode in to database ( mongodb )
+    response : True : add recode successful | False : cannot add recode in to database
+    """
+    data = database.passwordreset.insert_one(email.dict())
+    if data.acknowledged == True:
         return True
     else:
-        print(f"caching attempt of the secrete code of the {email} unsucessfull")
         return False
     
-def storeMailDate(data):
+def addPasswordResetRecodeCache(email, secreateKey):
     """
-    store verification email send details
-    return - true : successfull | false : unsuccessfull
+    perpose : add password reset recode in to cache
+    response : True : add recode successful | False : cannot add recode in to database
     """
-    print(data)
-    mailData = database.passwordreset.insert_one(data.dict())
-    if mailData.acknowledged == True:
-        print("send email for password-reset transaction recode in successfull")
+    data = cache.cache.hset(f'{cache.verification}:{email}', mapping={'code' : f'{secreateKey}', 'verifiede' : f'{False}'})
+    if data == 2:
         return True
-    else:
-        print("send email for password-reset transaction recode in NOT-successfull")
+    elif data == 0:
         return False
     
 def emailValidation(credencials):
