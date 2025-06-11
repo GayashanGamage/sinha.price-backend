@@ -110,20 +110,20 @@ def checkEmailVerification(email):
         print(f'{email} is not verified')
         return False
     
-def updatePassword(credencials):
+def updatePassword(email, password):
     """
     perpose : check the email is available on database and then update the password
     output : True : password update successufully | False : email not found | 1000 : document found, but update not happend
     """
-    changePassword = database.users.find_one_and_update({'email' : credencials.email}, {'$set' : {'password' : credencials.password}}, return_document=ReturnDocument.AFTER)
+    changePassword = database.users.find_one_and_update({'email' : email}, {'$set' : {'password' : password}}, return_document=ReturnDocument.AFTER)
     if changePassword == None:
-        print(f'{credencials.email} not found on "User" collection')
+        print(f'{email} not found on "User" collection')
         return False
-    elif changePassword['password'] == credencials.password:
-        print(f'password updated successfully on {credencials.email}')
+    elif changePassword['password'] == password:
+        print(f'password updated successfully on {email}')
         return True
-    elif changePassword['password'] != credencials.password:
-        print(f'{credencials.email} found on "User" collection, but not updated properly')
+    elif changePassword['password'] != password:
+        print(f'{email} found on "User" collection, but not updated properly')
         return 1000
     
 def removeVerificationOnRedis(email):

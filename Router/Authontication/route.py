@@ -31,7 +31,7 @@ async def userLogin(user : schema.UserOnlyCredintials):
     userData = db.checkEmail(user.email)
     if userData == False:
         return JSONResponse(status_code=404, content={'message' : 'invalied credentials'})
-    else:
+    elif userData != False:
         passwordVerification = passwordHash.verifyPassword(user.password, userData['password'])
         if passwordVerification == True:
             return JSONResponse(status_code=200, content={'token' : JWTtoken.encriptJWT(user.email)})
@@ -81,8 +81,10 @@ async def passwrodChannge(credencials : schema.UserOnlyCredintials):
     emailVerificationStatus = db.checkEmailVerification(credencials.email)
     # if verified
     if emailVerificationStatus==True:
+        # password encript
+        encriptPassword = passwordHash.hashedPassword()
         # update password on db
-        channgePassword = db.updatePassword(credencials)
+        channgePassword = db.updatePassword(credencials.email, encriptPassword)
         # if password update successfull
         if channgePassword == True:
             # remove data on 'verificaition' - redis
