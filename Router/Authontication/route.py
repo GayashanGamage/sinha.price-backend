@@ -39,7 +39,7 @@ async def userLogin(user : schema.UserOnlyCredintials):
             return JSONResponse(status_code=404, content={'message' : 'invalied credentials'})
             
 
-@route.get('/', tags=['auth'])
+@route.get('/sendverification', tags=['auth'])
 async def sendVerificationCode(email : schema.emailVerification = Query()):
     # check the email is avalilable
     emailAvailability = db.checkEmail(email.email)

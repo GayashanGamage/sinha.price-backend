@@ -69,7 +69,7 @@ def addPasswordResetRecodeCache(email, secreateKey):
     perpose : add password reset recode in to cache
     response : True : add recode successful | False : cannot add recode in to database
     """
-    data = cache.cache.hset(f'{cache.verification}:{email}', mapping={'code' : f'{secreateKey}', 'verifiede' : f'{False}'})
+    data = cache.cache.hset(f'{cache.verification}:{email}', mapping={'code' : f'{secreateKey}', 'verified' : f'{False}'})
     if data == 2:
         return True
     elif data == 0:
