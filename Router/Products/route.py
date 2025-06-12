@@ -68,7 +68,7 @@ async def trackProduct(productData : schema.TrackingProductDetails, credencials=
         elif product != False:
             
             # check tracking duplication related to user email 
-            duplicateTracking = db.trackingDuplication(product, credencials['email'])
+            duplicateTracking = db.trackingDuplication(product, userId)
             
             # not tracking duplication found
             if duplicateTracking == False:

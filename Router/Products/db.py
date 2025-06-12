@@ -38,12 +38,12 @@ def setTracking(data):
     elif settracking.acknowledged == False:
         return False
     
-def trackingDuplication(id, email):
+def trackingDuplication(productId, userId):
     """
     perpose : find duplicate products related to same user
     response : True - duplicated product tracking | False - unique tracking 
     """
-    data = database.tracking.find_one({'email' : email, 'id' : id})
+    data = database.tracking.find_one({'userId' : userId, 'productId' : productId})
     if data == None:
         print('tracking is not duplicated')
         return False
