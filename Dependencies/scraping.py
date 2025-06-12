@@ -20,7 +20,7 @@ def SinhagiriScrapper(link):
         # product title
         product_title = a.select_one('.product-title').text
         # availability
-        availability = a.select_one('.bg-success').text
+        availability = True if a.select_one('.bg-success') != None else False
         try:
             dataList = list(a.select('.data'))
             price = dataList[1].text
