@@ -17,4 +17,7 @@ def decriptJWT(Token):
         return e
 
 def authVerification(details : Annotated[HTTPAuthorizationCredentials, Depends(security)]):
-    return decriptJWT(details.credentials)
+    try:
+        return decriptJWT(details.credentials)
+    except:
+        return False

@@ -10,9 +10,9 @@ class DB:
     def __init__(self):
         self.client = MongoClient(os.getenv('mongo'))
         self.cluster = self.client['price_platform']
-        self.product = self.cluster['product']
+        self.product = self.cluster['Product']
         self.users = self.cluster['User']
-        self.tracks = self.cluster['tracks']
+        self.tracking = self.cluster['Tracking']
         self.email = self.cluster['email']
         self.passwordreset = self.cluster['PasswordReset']
 
