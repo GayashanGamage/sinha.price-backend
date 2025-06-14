@@ -123,3 +123,17 @@ async def trackSummery(credencials = Depends(JWTtoken.authVerification)):
     elif credencials == False:
         return JSONResponse(status_code=404, content={'message' : 'unauthorized access'})
     
+
+@productRoute.patch('/updateprice', tags=['product'])
+async def updatePrice(productdata : schema.priceUpdate, credencials = Depends(JWTtoken.authVerification)):
+    # check authontication is validate or not
+    if credencials == False:
+        return JSONResponse(status_code=404, content={'message' : 'unauthonticated user'})
+    else:
+        # find and update document
+        update = db.udpateTrackingPrice(productdata.id, productdata.priceUpdateWithoutId())
+        # return rsponce
+        if update == True:
+            return JSONResponse(status_code=200, content={'message' : 'update sucessful'})
+        elif update == False:
+            return JSONResponse(status_code=500, content={'message' : 'update not sucsessful'})

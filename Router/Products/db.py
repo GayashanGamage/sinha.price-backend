@@ -105,10 +105,16 @@ def trackProductSummery(userId):
     elif len(trackList) >= 1:
         return trackList    
 
-
-
-
-
+def udpateTrackingPrice(id, updatedData):
+    """
+    perpose : udpate the myPrice in tracking product
+    response : True - update successfuly | False - unsuccessful transaction
+    """
+    data = database.tracking.find_one_and_update({'_id' : id}, {'$set' : updatedData})
+    if data == None:
+        return False
+    else:
+        return True
 
 
 
