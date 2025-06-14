@@ -116,7 +116,16 @@ def udpateTrackingPrice(id, updatedData):
     else:
         return True
 
-
+def removeTracking(id):
+    """
+    perpose : remove tracking of the product
+    response : True - successful | False - unsucessfull
+    """
+    data = database.tracking.find_one_and_delete({'_id' : ObjectId(id)})
+    if data == None:
+        return False
+    elif data != None:
+        return True
 
 
 

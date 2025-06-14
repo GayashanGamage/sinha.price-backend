@@ -137,3 +137,17 @@ async def updatePrice(productdata : schema.priceUpdate, credencials = Depends(JW
             return JSONResponse(status_code=200, content={'message' : 'update sucessful'})
         elif update == False:
             return JSONResponse(status_code=500, content={'message' : 'update not sucsessful'})
+    
+@productRoute.delete('/delete', tags=['product'])
+async def deleteProduct(id : str, credencials = Depends(JWTtoken.authVerification)):
+    # authonticating request
+    # delete tracking
+    # responce
+    if credencials != False:
+        data = db.removeTracking(id)
+        if data == False:
+            return JSONResponse(status_code=400, content={'message' : 'tracking not found'})
+        elif data != False:
+            return JSONResponse(status_code=200, content={"message" : 'successfull'})
+    elif credencials == False:
+        return JSONResponse(status_code=404, content={'message' : 'unauthorized'})
