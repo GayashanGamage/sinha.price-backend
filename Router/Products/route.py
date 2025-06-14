@@ -94,3 +94,32 @@ async def trackProduct(productData : schema.TrackingProductDetails, credencials=
     # unauthorized access
     elif credencials == False:
         return JSONResponse(status_code=404, content={'message' : 'unauthorized access'})
+
+@productRoute.get('/summery', tags=['product'])
+async def trackSummery(credencials = Depends(JWTtoken.authVerification)):
+    if credencials != False:
+        
+        # get user Id
+        userData = db.getUserId(credencials['email'])
+        if userData != False:
+            
+            # request summerize tracking products
+            productData = db.trackProductSummery(userData)
+            if len(productData) == 0:
+                return JSONResponse(status_code=200, content={'message' : 'empty trckings', 'data' : []})
+            elif len(productData) >= 1:
+
+                # serialize data output
+                for item in productData:
+                    item['_id'] = str(item['_id'])
+
+                return JSONResponse(status_code=200, content={'message' : 'successfull', 'data' : productData})
+        
+        # unavailable user data under provided email 
+        elif userData == False:
+            return JSONResponse(status_code=400, content={'message' : 'invalied email address'})
+    
+    # unauthorized access 
+    elif credencials == False:
+        return JSONResponse(status_code=404, content={'message' : 'unauthorized access'})
+    

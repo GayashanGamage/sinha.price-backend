@@ -1,4 +1,5 @@
 from Dependencies.database import DB
+from bson import ObjectId
 
 database = DB()
 
@@ -61,3 +62,92 @@ def getUserId(email):
         return userData['_id']
     elif userData == None:
         return False
+    
+def trackProductSummery(userId):
+    """
+    perpose : get all tracking product data as summerization
+    responce : Dataset - if there any tracking products | False : no any products 
+    """
+    pipeline = [
+        {
+            '$match' : {
+                'userId' : userId
+            }
+        },
+        {
+            '$lookup': {
+                'from': "Product",  
+                'localField': 'productId',  
+                'foreignField': '_id',  
+                'as': 'productInfo'  
+            }
+        },
+        {
+            '$unwind': '$productInfo' 
+        },
+        {
+            '$project': {
+                'defaultPrice': 1,  
+                'myPrice': 1,       
+                'title': '$productInfo.title',  
+                'code' : '$productInfo.code'
+            }
+        }
+    ]
+    # Perform the aggregation
+    result = database.tracking.aggregate(pipeline)
+    trackList = []
+    for item in result:
+        trackList.append(item)
+
+    if len(trackList) == 0:
+        return False
+    elif len(trackList) >= 1:
+        return trackList    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+# generate a mongodb querry using pymongo for this senario
+
+# product table
+
+# '_id' : objectId(),
+# 'productLink' : str,
+# 'price' : int,
+# 'title' : str,
+# 'code' : str,
+# 'availability' : bool,
+# 'img' : str,
+# 'addedDate' : datetime,
+# 'lastUpdate' : datetime
+
+
+# tracking table
+# '_id' : objectId
+# 'defaultPrice' : str,
+# 'myPrice' : int,
+# 'startedDate' : datetime
+# 'userId' : objectId,
+# 'productId' : objectId
+
+# I want to joint traking table and product table base provide 'userId'. limit the output field from product table to produt 'title'. output should be print each column. 
