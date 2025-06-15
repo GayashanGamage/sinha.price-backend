@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from . import schema
 from . import db
 from fastapi import Depends
+from datetime import datetime
 
 productRoute = APIRouter(prefix='/product')
 
@@ -141,13 +142,39 @@ async def updatePrice(productdata : schema.priceUpdate, credencials = Depends(JW
 @productRoute.delete('/delete', tags=['product'])
 async def deleteProduct(id : str, credencials = Depends(JWTtoken.authVerification)):
     # authonticating request
-    # delete tracking
-    # responce
     if credencials != False:
+        # delete tracking
         data = db.removeTracking(id)
         if data == False:
             return JSONResponse(status_code=400, content={'message' : 'tracking not found'})
         elif data != False:
+            # count how many documents use same productId
+            trackingCount = db.trackingCount(data)
+            # if that is 0 - then remove product also 
+            if trackingCount == False:
+                db.removeProduct(data)
             return JSONResponse(status_code=200, content={"message" : 'successfull'})
+    elif credencials == False:
+        return JSONResponse(status_code=404, content={'message' : 'unauthorized'})
+    
+@productRoute.get('/details', tags=['product'])
+async def detailsOfProduct(id : str, credencials = Depends(JWTtoken.authVerification)):
+    # check authontication valied or not
+    if credencials != False:
+        # find the productId using trackingId
+        productid = db.getProductId(id)
+        if productid == False:
+            return JSONResponse(status_code=400, content={'message' : 'cannot find tracking details'})
+        elif productid != False:
+            # get the product details and serialize it
+            productDetails = db.getProductDetails(productid)
+            if productDetails == False:
+                return JSONResponse(status_code=400, content={'message' : 'product is not available'})
+            elif productDetails != False:
+                # serialize data
+                productDetails['_id'] = str(productDetails['_id'])
+                productDetails['lastUpdate'] = str(datetime.fromisoformat(productDetails['lastUpdate']).date())
+                # responcess
+                return JSONResponse(status_code=200, content={"message" : 'successful', 'data' : productDetails})
     elif credencials == False:
         return JSONResponse(status_code=404, content={'message' : 'unauthorized'})

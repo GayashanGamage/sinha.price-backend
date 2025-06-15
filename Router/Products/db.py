@@ -119,50 +119,55 @@ def udpateTrackingPrice(id, updatedData):
 def removeTracking(id):
     """
     perpose : remove tracking of the product
-    response : True - successful | False - unsucessfull
+    response : productId - successful | False - unsucessfull
     """
     data = database.tracking.find_one_and_delete({'_id' : ObjectId(id)})
     if data == None:
         return False
     elif data != None:
+        return data['productId']
+
+
+def trackingCount(id):
+    """
+    perpose : get how many users track same product
+    response : True - more than one customer  | False : no any customer 
+    """
+    data = database.tracking.count_documents({'productId' : id})
+    if data >= 1:
+        return True
+    elif data == 0:
+        return False
+
+def removeProduct(id):
+    """
+    perpose : remove product from 'Product' table
+    response : True - successfull | False - unsuccessfull
+    """
+    data = database.product.find_one_and_delete({'_id' : id})
+    if data == None:
+        return False
+    elif data != None:
         return True
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+def getProductId(id):
+    """
+    perpose : find the produtId 
+    response : productId - successfull | False - cannot find any tracking data related to provided Id
+    """
+    data = database.tracking.find_one({"_id" : ObjectId(id)})
+    if data != None:
+        return data['productId']
+    elif data == None:
+        return False
     
-
-# generate a mongodb querry using pymongo for this senario
-
-# product table
-
-# '_id' : objectId(),
-# 'productLink' : str,
-# 'price' : int,
-# 'title' : str,
-# 'code' : str,
-# 'availability' : bool,
-# 'img' : str,
-# 'addedDate' : datetime,
-# 'lastUpdate' : datetime
-
-
-# tracking table
-# '_id' : objectId
-# 'defaultPrice' : str,
-# 'myPrice' : int,
-# 'startedDate' : datetime
-# 'userId' : objectId,
-# 'productId' : objectId
-
-# I want to joint traking table and product table base provide 'userId'. limit the output field from product table to produt 'title'. output should be print each column. 
+def getProductDetails(id):
+    """
+    perpose : get product details
+    responce : productdata - successfull | False - product is not available
+    """
+    data = database.product.find_one({'_id' : id}, {'addedDate' : 0})
+    if data == None:
+        return False
+    elif data != None:
+        return data
