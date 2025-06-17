@@ -24,7 +24,7 @@ async def getUserDeails(credencial = Depends(JWTtoken.authVerification)):
             return JSONResponse(status_code=200, content={"message" : 'successfull', 'data' : user})
         
 @user.patch('/setnotificationall', tags=['user'])
-async def setNotificationAll(credencials = Depends(JWTtoken.authVerification)):
+async def setNotificationAll(notificationStatus:bool, credencials = Depends(JWTtoken.authVerification)):
     # validate credentials
     if credencials != False:
         # get the userId using credencials' email
@@ -33,11 +33,14 @@ async def setNotificationAll(credencials = Depends(JWTtoken.authVerification)):
             # update the tracking tables' 'emailNotification' to false
             return JSONResponse(status_code=400, content={'message' : 'email not found'})
         elif userId != False:
+            # swap the value of the "notificationStatus"
+            notificationStatus = not notificationStatus 
             # if all are correct, then set 'True' on 'emailNotification' in User table
-            notification = db.setNotificationOnTracks(userId['_id'])
-            print(f'this is notification status {notification}')
+            notification = db.setNotificationOnTracks(userId['_id'], notificationStatus)
+            print(f'all tracks updated {notification}')
             if notification == True:            
-                userUpdate = db.userUpdate(userId['_id'])
+                userUpdate = db.setNotificationOneUser(userId['_id'], notificationStatus)
+                print(f'user details updated {userUpdate}')
                 if userUpdate == True:
                     # send responds
                     return JSONResponse(status_code=200, content={'message' : 'succesful'})
@@ -49,11 +52,21 @@ async def setNotificationAll(credencials = Depends(JWTtoken.authVerification)):
         return JSONResponse(status_code=404, content={'messgae' : 'unauthonticated'})
     
 @user.patch('/setnotification', tags=['user'])
-async def setNotification(trakingId : str, trackingStatus : bool, credencials = Depends(JWTtoken.authVerification)):
+async def setNotification(trakingId : str, trackingStatus:bool, allTrackingStatus : bool, credencials = Depends(JWTtoken.authVerification)):
     # check credencials
     if credencials != False:
+
+        # defined the final output ( allEmailNotification + emailNotification )
+        if allTrackingStatus == False:
+            trackingStatus = True
+            allTrackingStatus = True
+            update = db.setNotificationOnTrack(trakingId, trackingStatus, allTrackingStatus)
+        
+        elif allTrackingStatus == True:
+            trackingStatus = not trackingStatus
+            update = db.setNotificationOnTrack(trakingId, trackingStatus, allTrackingStatus)
+
         # udpate 'tracking' table
-        update = db.setNotificationOnTrack(trakingId, trackingStatus)
         if update == True:
             # response
             return JSONResponse(status_code=200, content={'message' : 'successful'})

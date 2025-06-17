@@ -89,6 +89,8 @@ def trackProductSummery(userId):
             '$project': {
                 'defaultPrice': 1,  
                 'myPrice': 1,       
+                'emailNotification' : 1,
+                'allEmailNotification' : 1,
                 'title': '$productInfo.title',  
                 'code' : '$productInfo.code'
             }

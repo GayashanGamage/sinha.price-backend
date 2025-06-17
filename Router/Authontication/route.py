@@ -82,7 +82,7 @@ async def passwrodChannge(credencials : schema.UserOnlyCredintials):
     # if verified
     if emailVerificationStatus==True:
         # password encript
-        encriptPassword = passwordHash.hashedPassword()
+        encriptPassword = passwordHash.hashedPassword(credencials.password)
         # update password on db
         channgePassword = db.updatePassword(credencials.email, encriptPassword)
         # if password update successfull

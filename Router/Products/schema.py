@@ -18,7 +18,9 @@ class Tracking(BaseModel):
     myPrice : int
     stertedDate : Optional[datetime] = Field(default_factory=datetime.now)    
     lastUpdate : Optional[datetime] = Field(default_factory=datetime.now)
+    # true means tracking, false means untracking
     emailNotification : Optional[bool] = Field(default=True)
+    allEmailNotification : Optional[bool] = Field(default=True)
 
 class TrackingProductDetails(BaseModel):
     product : Product
